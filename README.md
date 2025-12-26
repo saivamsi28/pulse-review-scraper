@@ -1,4 +1,5 @@
 📊 SaaS Product Review Scraper
+
 📌 Objective
 
 The objective of this project is to develop a Python-based script that scrapes product reviews for a given SaaS company from popular review platforms within a specified time period.
@@ -30,6 +31,7 @@ argparse, datetime, json, os
 📂 Project Structure
 
 review-scraper/
+
 ├── src/
 │   ├── main.py
 │   ├── scrapers/
