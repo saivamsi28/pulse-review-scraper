@@ -1,22 +1,25 @@
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from models.review_schema import build_review
+import time
+
+from utils.driver import get_driver
 from utils.date_utils import within_range
-from config.constants import HEADERS, CAPTERRA_BASE_URL
+from models.review_schema import build_review
+
 
 def scrape_capterra(company, start_date, end_date):
+    driver = get_driver()
     reviews = []
     page = 1
 
     while True:
-        url = f"{CAPTERRA_BASE_URL}/{company}/reviews?page={page}"
-        response = requests.get(url, headers=HEADERS)
+        url = f"https://www.capterra.com/p/{company}/reviews?page={page}"
+        print("Fetching:", url)
 
-        if response.status_code != 200:
-            break
+        driver.get(url)
+        time.sleep(5)
 
-        soup = BeautifulSoup(response.text, "html.parser")
+        soup = BeautifulSoup(driver.page_source, "html.parser")
         blocks = soup.find_all("div", class_="review")
 
         if not blocks:
@@ -26,23 +29,24 @@ def scrape_capterra(company, start_date, end_date):
             try:
                 title = block.find("h3").get_text(strip=True)
                 content = block.find("p").get_text(strip=True)
+
                 date_text = block.find("time").get_text(strip=True)
                 review_date = datetime.strptime(date_text, "%b %d, %Y")
 
                 if not within_range(review_date, start_date, end_date):
                     continue
 
-                rating = block.find("span", class_="rating")
-                rating_value = rating.get_text(strip=True) if rating else None
+                rating_tag = block.find("span", class_="rating")
+                rating = rating_tag.get_text(strip=True) if rating_tag else None
 
                 reviews.append(
                     build_review(
-                        title,
-                        content,
-                        review_date.strftime("%Y-%m-%d"),
-                        rating_value,
-                        None,
-                        "capterra"
+                        title=title,
+                        review=content,
+                        date=review_date.strftime("%Y-%m-%d"),
+                        rating=rating,
+                        reviewer_name=None,
+                        source="capterra"
                     )
                 )
             except Exception:
@@ -50,4 +54,5 @@ def scrape_capterra(company, start_date, end_date):
 
         page += 1
 
+    driver.quit()
     return reviews

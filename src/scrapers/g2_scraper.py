@@ -1,49 +1,36 @@
-import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from models.review_schema import build_review
+import time
+
+from utils.driver import get_driver
 from utils.date_utils import within_range
-from config.constants import HEADERS, G2_BASE_URL
+from models.review_schema import build_review
+
 
 def scrape_g2(company, start_date, end_date):
+    driver = get_driver()
     reviews = []
     page = 1
 
     while True:
-        url = f"{G2_BASE_URL}/{company}/reviews?page={page}"
+        url = f"https://www.g2.com/products/{company}/reviews?page={page}"
         print("Fetching:", url)
 
-        response = requests.get(url, headers=HEADERS)
+        driver.get(url)
+        time.sleep(5)
 
-        if response.status_code != 200:
-            print(f"Stopped: received status code {response.status_code}")
+        soup = BeautifulSoup(driver.page_source, "html.parser")
+        blocks = soup.find_all("div", class_="paper")
+
+        if not blocks:
             break
 
-        soup = BeautifulSoup(response.text, "html.parser")
-
-        review_blocks = soup.find_all("div", class_="paper")
-
-        if not review_blocks:
-            if page == 1:
-                print(
-                    "Warning: No reviews found in static HTML. "
-                    "G2 reviews are loaded dynamically via JavaScript."
-                )
-            break
-
-        for block in review_blocks:
+        for block in blocks:
             try:
-                title_tag = block.find("h3")
-                body_tag = block.find("p")
-                time_tag = block.find("time")
+                title = block.find("h3").get_text(strip=True)
+                content = block.find("p").get_text(strip=True)
 
-                if not (title_tag and body_tag and time_tag):
-                    continue
-
-                title = title_tag.get_text(strip=True)
-                content = body_tag.get_text(strip=True)
-
-                date_text = time_tag.get("datetime", "")[:10]
+                date_text = block.find("time")["datetime"][:10]
                 review_date = datetime.strptime(date_text, "%Y-%m-%d")
 
                 if not within_range(review_date, start_date, end_date):
@@ -53,7 +40,7 @@ def scrape_g2(company, start_date, end_date):
                 rating = rating_tag.get_text(strip=True) if rating_tag else None
 
                 reviewer_tag = block.find("span", class_="link")
-                reviewer_name = reviewer_tag.get_text(strip=True) if reviewer_tag else None
+                reviewer = reviewer_tag.get_text(strip=True) if reviewer_tag else None
 
                 reviews.append(
                     build_review(
@@ -61,7 +48,7 @@ def scrape_g2(company, start_date, end_date):
                         review=content,
                         date=date_text,
                         rating=rating,
-                        reviewer_name=reviewer_name,
+                        reviewer_name=reviewer,
                         source="g2"
                     )
                 )
@@ -70,4 +57,5 @@ def scrape_g2(company, start_date, end_date):
 
         page += 1
 
+    driver.quit()
     return reviews
