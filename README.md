@@ -1,4 +1,5 @@
 📊 SaaS Product Review Scraper
+
 📌 Objective
 
 The objective of this project is to develop a Python-based script that scrapes product reviews for a given SaaS company from popular review platforms within a specified time period.
@@ -30,27 +31,46 @@ argparse, datetime, json, os
 📂 Project Structure
 
 review-scraper/
+
 ├── src/
+
 │   ├── main.py
+
 │   ├── scrapers/
+
 │   │   ├── __init__.py
+
 │   │   ├── g2_scraper.py
+
 │   │   ├── capterra_scraper.py
+
 │   │   └── getapp_scraper.py
+
 │   ├── utils/
+
 │   │   ├── date_utils.py
+
 │   │   ├── validators.py
+
 │   │   └── error_handler.py
+
 │   ├── models/
+
 │   │   └── review_schema.py
+
 │   └── config/
 │       └── constants.py
+
 ├── output/
+
 │   └── reviews.json
+
 ├── requirements.txt
+
 └── README.md
 
 ▶️ How to Run the Script
+
 1️⃣ Install dependencies 
 
 pip install -r requirements.txt
