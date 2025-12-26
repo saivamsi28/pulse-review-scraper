@@ -33,26 +33,44 @@ argparse, datetime, json, os
 review-scraper/
 
 ├── src/
+
 │   ├── main.py
+
 │   ├── scrapers/
+
 │   │   ├── __init__.py
+
 │   │   ├── g2_scraper.py
+
 │   │   ├── capterra_scraper.py
+
 │   │   └── getapp_scraper.py
+
 │   ├── utils/
+
 │   │   ├── date_utils.py
+
 │   │   ├── validators.py
+
 │   │   └── error_handler.py
+
 │   ├── models/
+
 │   │   └── review_schema.py
+
 │   └── config/
 │       └── constants.py
+
 ├── output/
+
 │   └── reviews.json
+
 ├── requirements.txt
+
 └── README.md
 
 ▶️ How to Run the Script
+
 1️⃣ Install dependencies 
 
 pip install -r requirements.txt
